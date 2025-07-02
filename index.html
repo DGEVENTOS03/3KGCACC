@@ -1,52 +1,13 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Consulta Participantes</title>
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; }
     input, button { margin: 5px 0; padding: 6px; width: 100%; max-width: 300px; }
     #resultado { margin-top: 20px; }
   </style>
-  <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycby91JgZgVFN9Ief0Mo0NFZR4pXDFBzmb3PnIycEatboujy7t3W3U_HUxP3VNmYlmwcN/exec';
-
-    async function buscarParticipante() {
-      const nombre = document.getElementById('nombre').value;
-      const apellidos = document.getElementById('apellidos').value;
-      const documento = document.getElementById('documento').value;
-
-      const res = await fetch(API_URL, {
-        method: 'POST',
-        body: JSON.stringify({ accion: 'buscar', nombre, apellidos, documento })
-      });
-      const data = await res.json();
-
-      if (data.encontrado) {
-        document.getElementById('resultado').innerHTML = `
-          <p><strong>Nombre:</strong> ${data.participante.nombre}</p>
-          <p><strong>Apellidos:</strong> ${data.participante.apellidos}</p>
-          <p><strong>Documento:</strong> ${data.participante.documento}</p>
-          <p><strong>Género:</strong> ${data.participante.genero}</p>
-          <label>Dorsal: <input type="text" id="dorsal" value="${data.participante.dorsal || ''}" /></label><br/>
-          <button onclick="guardarDorsal('${data.participante.documento}')">Guardar Dorsal</button>
-        `;
-      } else {
-        document.getElementById('resultado').innerText = 'Participante no encontrado.';
-      }
-    }
-
-    async function guardarDorsal(documento) {
-      const dorsal = document.getElementById('dorsal').value;
-
-      const res = await fetch(API_URL, {
-        method: 'POST',
-        body: JSON.stringify({ accion: 'guardar', documento, dorsal })
-      });
-      const data = await res.json();
-      alert(data.mensaje);
-    }
-  </script>
 </head>
 <body>
   <h1>Buscar Participante</h1>
@@ -55,5 +16,41 @@
   <input type="text" id="documento" placeholder="Documento" />
   <button onclick="buscarParticipante()">Buscar</button>
   <div id="resultado"></div>
+
+  <script>
+    function buscarParticipante() {
+      const nombre = document.getElementById('nombre').value;
+      const apellidos = document.getElementById('apellidos').value;
+      const documento = document.getElementById('documento').value;
+
+      google.script.run.withSuccessHandler(mostrarResultado).buscarParticipante({ nombre, apellidos, documento });
+    }
+
+    function mostrarResultado(data) {
+      const resultadoDiv = document.getElementById('resultado');
+      if (data.encontrado) {
+        const p = data.participante;
+        resultadoDiv.innerHTML = `
+          <p><strong>Nombre:</strong> ${p.nombre}</p>
+          <p><strong>Apellidos:</strong> ${p.apellidos}</p>
+          <p><strong>Documento:</strong> ${p.documento}</p>
+          <p><strong>Género:</strong> ${p.genero}</p>
+          <label>Dorsal: <input type="text" id="dorsal" value="${p.dorsal || ''}" /></label><br/>
+          <button onclick="guardarDorsal('${p.documento}')">Guardar Dorsal</button>
+        `;
+      } else {
+        resultadoDiv.innerText = 'Participante no encontrado.';
+      }
+    }
+
+    function guardarDorsal(documento) {
+      const dorsal = document.getElementById('dorsal').value;
+      google.script.run.withSuccessHandler(mostrarMensaje).guardarDorsal({ documento, dorsal });
+    }
+
+    function mostrarMensaje(resp) {
+      alert(resp.mensaje);
+    }
+  </script>
 </body>
 </html>
