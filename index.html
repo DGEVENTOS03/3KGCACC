@@ -1,55 +1,54 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <title>Consulta Participantes</title>
+  <meta charset="UTF-8">
+  <title>Asignar Dorsal</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    input, button { margin: 5px 0; padding: 6px; width: 100%; max-width: 300px; }
-    #resultado { margin-top: 20px; }
+    body { font-family: Arial; padding: 20px; }
+    input, button { margin: 5px; }
+    .result { border: 1px solid #ccc; padding: 10px; margin-top: 10px; }
   </style>
 </head>
 <body>
-  <h1>Buscar Participante</h1>
-  <input type="text" id="nombre" placeholder="Nombre" />
-  <input type="text" id="apellidos" placeholder="Apellidos" />
-  <input type="text" id="documento" placeholder="Documento" />
-  <button onclick="buscarParticipante()">Buscar</button>
-  <div id="resultado"></div>
+  <h2>Buscar Participante</h2>
+  <input type="text" id="busqueda" placeholder="Nombre, Apellidos o Documento">
+  <button onclick="buscar()">Buscar</button>
+
+  <div id="resultado" class="result"></div>
 
   <script>
-    function buscarParticipante() {
-      const nombre = document.getElementById('nombre').value;
-      const apellidos = document.getElementById('apellidos').value;
-      const documento = document.getElementById('documento').value;
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyiY2sCKb498RrDTlGHC1cWcDb1CYs8EKppcllktHUgagHpb1e_MIgtmw8o4KOIpTPemw/exec"; // 🔁 pega aquí tu URL publicada
 
-      google.script.run.withSuccessHandler(mostrarResultado).buscarParticipante({ nombre, apellidos, documento });
-    }
+    async function buscar() {
+      const query = document.getElementById("busqueda").value.trim();
+      const res = await fetch(`${SCRIPT_URL}?query=${encodeURIComponent(query)}`);
+      const data = await res.json();
 
-    function mostrarResultado(data) {
-      const resultadoDiv = document.getElementById('resultado');
-      if (data.encontrado) {
-        const p = data.participante;
-        resultadoDiv.innerHTML = `
-          <p><strong>Nombre:</strong> ${p.nombre}</p>
-          <p><strong>Apellidos:</strong> ${p.apellidos}</p>
-          <p><strong>Documento:</strong> ${p.documento}</p>
-          <p><strong>Género:</strong> ${p.genero}</p>
-          <label>Dorsal: <input type="text" id="dorsal" value="${p.dorsal || ''}" /></label><br/>
-          <button onclick="guardarDorsal('${p.documento}')">Guardar Dorsal</button>
-        `;
-      } else {
-        resultadoDiv.innerText = 'Participante no encontrado.';
+      if (!data) {
+        document.getElementById("resultado").innerHTML = "No encontrado.";
+        return;
       }
+
+      document.getElementById("resultado").innerHTML = `
+        <p><strong>Nombre:</strong> ${data["NOMBRE"]}</p>
+        <p><strong>Apellidos:</strong> ${data["APELLIDOS"]}</p>
+        <p><strong>Documento:</strong> ${data["DOCUMENTO DE IDENTIDAD"]}</p>
+        <p><strong>Dorsal actual:</strong> ${data["DORSAL"] ?? "No asignado"}</p>
+        <input type="number" id="nuevoDorsal" placeholder="Nuevo dorsal">
+        <button onclick="asignarDorsal('${data["DOCUMENTO DE IDENTIDAD"]}')">Asignar</button>
+      `;
     }
 
-    function guardarDorsal(documento) {
-      const dorsal = document.getElementById('dorsal').value;
-      google.script.run.withSuccessHandler(mostrarMensaje).guardarDorsal({ documento, dorsal });
-    }
+    async function asignarDorsal(documento) {
+      const dorsal = document.getElementById("nuevoDorsal").value;
+      const res = await fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({ documento, dorsal }),
+        headers: { "Content-Type": "application/json" }
+      });
 
-    function mostrarMensaje(resp) {
-      alert(resp.mensaje);
+      const text = await res.text();
+      alert(text);
     }
   </script>
 </body>
