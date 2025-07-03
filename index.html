@@ -53,12 +53,12 @@
 <body>
   <h2>Buscar Participante</h2>
   <input type="text" id="busqueda" placeholder="Nombre, Apellidos o Documento">
-  <button onclick="buscar()">Buscar</button>
+  <button id="buscarBtn">Buscar</button>
 
   <div id="resultado" class="result"></div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxR3Y0gNCD-LJWvXl7eB7eXEifiwpVL1G2njUIn01xyfrTWRz_b9SLSlO6LAsi2Kk-rRg/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxqn515TBe3Sm9OSYz6mWWtxeY4f2s4Q4nWtPLsPrGMD9fRkZdJjm6L7qLvdI2-JgVk/exec";
 
     async function buscar() {
       const query = document.getElementById("busqueda").value.trim();
@@ -79,16 +79,19 @@
           return;
         }
 
-        document.getElementById("resultado").innerHTML = data.map(part => `
-          <div class="participant">
-            <p><strong>Nombre:</strong> ${part["NOMBRE"]}</p>
-            <p><strong>Apellidos:</strong> ${part["APELLIDOS"]}</p>
-            <p><strong>Documento:</strong> ${part["DOCUMENTO DE IDENTIDAD"]}</p>
-            <p><strong>Dorsal actual:</strong> ${part["DORSAL"] ?? "No asignado"}</p>
-            <input type="number" id="dorsal-${part["DOCUMENTO DE IDENTIDAD"]}" placeholder="Nuevo dorsal">
-            <button onclick="asignarDorsal('${part["DOCUMENTO DE IDENTIDAD"]}')">Asignar Dorsal</button>
-          </div>
-        `).join("");
+        document.getElementById("resultado").innerHTML = data.map(part => {
+          const doc = part["DOCUMENTO DE IDENTIDAD"];
+          return `
+            <div class="participant">
+              <p><strong>Nombre:</strong> ${part["NOMBRE"]}</p>
+              <p><strong>Apellidos:</strong> ${part["APELLIDOS"]}</p>
+              <p><strong>Documento:</strong> ${doc}</p>
+              <p><strong>Dorsal actual:</strong> ${part["DORSAL"] ?? "No asignado"}</p>
+              <input type="number" id="dorsal-${doc}" placeholder="Nuevo dorsal">
+              <button onclick="asignarDorsal('${doc}')">Asignar Dorsal</button>
+            </div>
+          `;
+        }).join("");
       } catch (error) {
         console.error(error);
         document.getElementById("resultado").innerHTML = "Ocurrió un error al buscar los datos.";
@@ -113,12 +116,15 @@
 
         const text = await res.text();
         alert(Respuesta del servidor: ${text});
-        buscar(); // Refresca resultados después de asignar
+        buscar(); // Refrescar lista
       } catch (error) {
         console.error(error);
         alert("Error al asignar el dorsal.");
       }
     }
+
+    // Asegura que la función esté definida después de cargar el DOM
+    document.getElementById("buscarBtn").addEventListener("click", buscar);
   </script>
 </body>
 </html>
