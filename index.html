@@ -86,6 +86,7 @@
               <p><strong>Nombre:</strong> ${part["NOMBRE"]}</p>
               <p><strong>Apellidos:</strong> ${part["APELLIDOS"]}</p>
               <p><strong>Documento:</strong> ${doc}</p>
+              <p><strong>Talla:</strong> ${part["TALLA"] ?? "No registrada"}</p>
               <p><strong>Dorsal actual:</strong> ${part["DORSAL"] ?? "No asignado"}</p>
               <input type="number" id="dorsal-${doc}" placeholder="Nuevo dorsal" min="1" />
               <button onclick="asignarDorsal('${doc}')">Asignar Dorsal</button>
