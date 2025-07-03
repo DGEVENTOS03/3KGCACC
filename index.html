@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Asignar Dorsal</title>
   <style>
     body {
@@ -52,7 +52,7 @@
 </head>
 <body>
   <h2>Buscar Participante</h2>
-  <input type="text" id="busqueda" placeholder="Nombre, Apellidos o Documento">
+  <input type="text" id="busqueda" placeholder="Nombre, Apellidos o Documento" />
   <button id="buscarBtn">Buscar</button>
 
   <div id="resultado" class="result"></div>
@@ -60,75 +60,73 @@
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2voVcOluLwMfOP68yTKET_klATLKgkPpbs7SdByfaVGWdnzCMUNwcFJx70AB2y-Uiiw/exec";
 
-async function buscar() {
-  const query = document.getElementById("busqueda").value.trim();
+    async function buscar() {
+      const query = document.getElementById("busqueda").value.trim();
 
-  if (!query) {
-    alert("Por favor ingrese un criterio de búsqueda.");
-    return;
-  }
+      if (!query) {
+        alert("Por favor ingrese un criterio de búsqueda.");
+        return;
+      }
 
-  document.getElementById("resultado").innerHTML = "Buscando...";
+      document.getElementById("resultado").innerHTML = "Buscando...";
 
-  try {
-    // Aquí usamos backticks para interpolar correctamente la URL
-    const res = await fetch(`${SCRIPT_URL}?query=${encodeURIComponent(query)}`);
-    const data = await res.json();
+      try {
+        const res = await fetch(`${SCRIPT_URL}?query=${encodeURIComponent(query)}`);
+        const data = await res.json();
 
-    if (!Array.isArray(data) || data.length === 0) {
-      document.getElementById("resultado").innerHTML = "No se encontraron coincidencias.";
-      return;
+        if (!Array.isArray(data) || data.length === 0) {
+          document.getElementById("resultado").innerHTML = "No se encontraron coincidencias.";
+          return;
+        }
+
+        document.getElementById("resultado").innerHTML = data.map(part => {
+          const doc = part["DOCUMENTO DE IDENTIDAD"];
+          return `
+            <div class="participant">
+              <p><strong>Nombre:</strong> ${part["NOMBRE"]}</p>
+              <p><strong>Apellidos:</strong> ${part["APELLIDOS"]}</p>
+              <p><strong>Documento:</strong> ${doc}</p>
+              <p><strong>Dorsal actual:</strong> ${part["DORSAL"] ?? "No asignado"}</p>
+              <input type="number" id="dorsal-${doc}" placeholder="Nuevo dorsal" min="1" />
+              <button onclick="asignarDorsal('${doc}')">Asignar Dorsal</button>
+            </div>
+          `;
+        }).join("");
+      } catch (error) {
+        console.error(error);
+        document.getElementById("resultado").innerHTML = "Ocurrió un error al buscar los datos.";
+      }
     }
 
-    // Generamos la lista de participantes dinámicamente
-    document.getElementById("resultado").innerHTML = data.map(part => {
-      const doc = part["DOCUMENTO DE IDENTIDAD"];
-      return `
-        <div class="participant">
-          <p><strong>Nombre:</strong> ${part["NOMBRE"]}</p>
-          <p><strong>Apellidos:</strong> ${part["APELLIDOS"]}</p>
-          <p><strong>Documento:</strong> ${doc}</p>
-          <p><strong>Dorsal actual:</strong> ${part["DORSAL"] ?? "No asignado"}</p>
-          <input type="number" id="dorsal-${doc}" placeholder="Nuevo dorsal">
-          <button onclick="asignarDorsal('${doc}')">Asignar Dorsal</button>
-        </div>
-      `;
-    }).join("");
-  } catch (error) {
-    console.error(error);
-    document.getElementById("resultado").innerHTML = "Ocurrió un error al buscar los datos.";
-  }
-}
+    async function asignarDorsal(documento) {
+      const input = document.getElementById(`dorsal-${documento}`);
+      const dorsal = input.value.trim();
 
-async function asignarDorsal(documento) {
-  // Aquí usamos backticks para referenciar el id correctamente
-  const input = document.getElementById(`dorsal-${documento}`);
-  const dorsal = input.value.trim();
+      if (!dorsal || isNaN(dorsal) || Number(dorsal) <= 0) {
+        alert("Por favor ingresa un dorsal válido.");
+        return;
+      }
 
-  if (!dorsal || isNaN(dorsal) || Number(dorsal) <= 0) {
-    alert("Por favor ingresa un dorsal válido.");
-    return;
-  }
+      try {
+        const res = await fetch(SCRIPT_URL, {
+          method: "POST",
+          body: JSON.stringify({ documento, dorsal }),
+          headers: { "Content-Type": "application/json" }
+        });
 
-  try {
-    const res = await fetch(SCRIPT_URL, {
-      method: "POST",
-      body: JSON.stringify({ documento, dorsal }),
-      headers: { "Content-Type": "application/json" }
-    });
+        const data = await res.json();
 
-    const text = await res.text();
-    // Usamos backticks para interpolar el mensaje en el alert
-    alert(`Respuesta del servidor: ${text}`);
-    buscar(); // Refrescar la lista después de asignar dorsal
-  } catch (error) {
-    console.error(error);
-    alert("Error al asignar el dorsal.");
-  }
-}
+        alert(data.message);
 
-document.getElementById("buscarBtn").addEventListener("click", buscar);
-    // Asegura que la función esté definida después de cargar el DOM
+        if (data.success) {
+          buscar(); // Refresca la lista si la actualización fue exitosa
+        }
+      } catch (error) {
+        console.error(error);
+        alert("Error al asignar el dorsal.");
+      }
+    }
+
     document.getElementById("buscarBtn").addEventListener("click", buscar);
   </script>
 </body>
