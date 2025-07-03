@@ -71,6 +71,7 @@ async function buscar() {
   document.getElementById("resultado").innerHTML = "Buscando...";
 
   try {
+    // Aquí usamos backticks para interpolar correctamente la URL
     const res = await fetch(`${SCRIPT_URL}?query=${encodeURIComponent(query)}`);
     const data = await res.json();
 
@@ -79,6 +80,7 @@ async function buscar() {
       return;
     }
 
+    // Generamos la lista de participantes dinámicamente
     document.getElementById("resultado").innerHTML = data.map(part => {
       const doc = part["DOCUMENTO DE IDENTIDAD"];
       return `
@@ -99,6 +101,7 @@ async function buscar() {
 }
 
 async function asignarDorsal(documento) {
+  // Aquí usamos backticks para referenciar el id correctamente
   const input = document.getElementById(`dorsal-${documento}`);
   const dorsal = input.value.trim();
 
@@ -115,14 +118,16 @@ async function asignarDorsal(documento) {
     });
 
     const text = await res.text();
+    // Usamos backticks para interpolar el mensaje en el alert
     alert(`Respuesta del servidor: ${text}`);
-    buscar(); // Refrescar lista
+    buscar(); // Refrescar la lista después de asignar dorsal
   } catch (error) {
     console.error(error);
     alert("Error al asignar el dorsal.");
   }
 }
 
+document.getElementById("buscarBtn").addEventListener("click", buscar);
     // Asegura que la función esté definida después de cargar el DOM
     document.getElementById("buscarBtn").addEventListener("click", buscar);
   </script>
