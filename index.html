@@ -58,21 +58,21 @@
   <div id="resultado" class="result"></div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxR3Y0gNCD-LJWvXl7eB7eXEifiwpVL1G2njUIn01xyfrTWRz_b9SLSlO6LAsi2Kk-rRg/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxqn515TBe3Sm9OSYz6mWWtxeY4f2s4Q4nWtPLsPrGMD9fRkZdJjm6L7qLvdI2-JgVk/exec";
 
     async function buscar() {
-  const query = document.getElementById("busqueda").value.trim();
+      const query = document.getElementById("busqueda").value.trim();
 
-  if (!query) {
-    alert("Por favor ingrese un criterio de búsqueda.");
-    return;
-  }
+      if (!query) {
+        alert("Por favor ingrese un criterio de búsqueda.");
+        return;
+      }
 
-  document.getElementById("resultado").innerHTML = "Buscando...";
+      document.getElementById("resultado").innerHTML = "Buscando...";
 
-  try {
-    const res = await fetch(${SCRIPT_URL}?query=${encodeURIComponent(query)});
-    const data = await res.json();
+      try {
+        const res = await fetch(${SCRIPT_URL}?query=${encodeURIComponent(query)});
+        const data = await res.json();
 
         if (!Array.isArray(data) || data.length === 0) {
           document.getElementById("resultado").innerHTML = "No se encontraron coincidencias.";
@@ -113,7 +113,7 @@
 
         const text = await res.text();
         alert(Respuesta del servidor: ${text});
-        buscar(); // Refresca los resultados
+        buscar(); // Refresca resultados después de asignar
       } catch (error) {
         console.error(error);
         alert("Error al asignar el dorsal.");
