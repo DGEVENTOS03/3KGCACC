@@ -4,9 +4,50 @@
   <meta charset="UTF-8">
   <title>Asignar Dorsal</title>
   <style>
-    body { font-family: Arial; padding: 20px; }
-    input, button { margin: 5px; }
-    .result { border: 1px solid #ccc; padding: 10px; margin-top: 10px; }
+    body {
+      font-family: Arial, sans-serif;
+      padding: 30px;
+      background-color: #f4f4f4;
+    }
+
+    h2 {
+      color: #333;
+    }
+
+    input[type="text"], input[type="number"] {
+      padding: 8px;
+      width: 300px;
+      margin: 5px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    button {
+      padding: 8px 15px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .result {
+      background: white;
+      border: 1px solid #ccc;
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 5px;
+    }
+
+    .participant {
+      margin-bottom: 20px;
+      border-bottom: 1px dashed #ccc;
+      padding-bottom: 10px;
+    }
   </style>
 </head>
 <body>
@@ -17,38 +58,66 @@
   <div id="resultado" class="result"></div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxqn515TBe3Sm9OSYz6mWWtxeY4f2s4Q4nWtPLsPrGMD9fRkZdJjm6L7qLvdI2-JgVk/exec"; // 🔁 pega aquí tu URL publicada
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxqn515TBe3Sm9OSYz6mWWtxeY4f2s4Q4nWtPLsPrGMD9fRkZdJjm6L7qLvdI2-JgVk/exec";
 
     async function buscar() {
       const query = document.getElementById("busqueda").value.trim();
-      const res = await fetch(`${SCRIPT_URL}?query=${encodeURIComponent(query)}`);
-      const data = await res.json();
 
-      if (!data) {
-        document.getElementById("resultado").innerHTML = "No encontrado.";
+      if (!query) {
+        alert("Por favor ingrese un criterio de búsqueda.");
         return;
       }
 
-      document.getElementById("resultado").innerHTML = `
-        <p><strong>Nombre:</strong> ${data["NOMBRE"]}</p>
-        <p><strong>Apellidos:</strong> ${data["APELLIDOS"]}</p>
-        <p><strong>Documento:</strong> ${data["DOCUMENTO DE IDENTIDAD"]}</p>
-        <p><strong>Dorsal actual:</strong> ${data["DORSAL"] ?? "No asignado"}</p>
-        <input type="number" id="nuevoDorsal" placeholder="Nuevo dorsal">
-        <button onclick="asignarDorsal('${data["DOCUMENTO DE IDENTIDAD"]}')">Asignar</button>
-      `;
+      document.getElementById("resultado").innerHTML = "Buscando...";
+
+      try {
+        const res = await fetch(${SCRIPT_URL}?query=${encodeURIComponent(query)});
+        const data = await res.json();
+
+        if (!Array.isArray(data) || data.length === 0) {
+          document.getElementById("resultado").innerHTML = "No se encontraron coincidencias.";
+          return;
+        }
+
+        document.getElementById("resultado").innerHTML = data.map(part => `
+          <div class="participant">
+            <p><strong>Nombre:</strong> ${part["NOMBRE"]}</p>
+            <p><strong>Apellidos:</strong> ${part["APELLIDOS"]}</p>
+            <p><strong>Documento:</strong> ${part["DOCUMENTO DE IDENTIDAD"]}</p>
+            <p><strong>Dorsal actual:</strong> ${part["DORSAL"] ?? "No asignado"}</p>
+            <input type="number" id="dorsal-${part["DOCUMENTO DE IDENTIDAD"]}" placeholder="Nuevo dorsal">
+            <button onclick="asignarDorsal('${part["DOCUMENTO DE IDENTIDAD"]}')">Asignar Dorsal</button>
+          </div>
+        `).join("");
+      } catch (error) {
+        console.error(error);
+        document.getElementById("resultado").innerHTML = "Ocurrió un error al buscar los datos.";
+      }
     }
 
     async function asignarDorsal(documento) {
-      const dorsal = document.getElementById("nuevoDorsal").value;
-      const res = await fetch(SCRIPT_URL, {
-        method: "POST",
-        body: JSON.stringify({ documento, dorsal }),
-        headers: { "Content-Type": "application/json" }
-      });
+      const input = document.getElementById(dorsal-${documento});
+      const dorsal = input.value.trim();
 
-      const text = await res.text();
-      alert(text);
+      if (!dorsal || isNaN(dorsal) || Number(dorsal) <= 0) {
+        alert("Por favor ingresa un dorsal válido.");
+        return;
+      }
+
+      try {
+        const res = await fetch(SCRIPT_URL, {
+          method: "POST",
+          body: JSON.stringify({ documento, dorsal }),
+          headers: { "Content-Type": "application/json" }
+        });
+
+        const text = await res.text();
+        alert(Respuesta del servidor: ${text});
+        buscar(); // Refresca los resultados
+      } catch (error) {
+        console.error(error);
+        alert("Error al asignar el dorsal.");
+      }
     }
   </script>
 </body>
