@@ -9,9 +9,11 @@
       padding: 30px;
       background-color: #f4f4f4;
     }
+
     h2 {
       color: #333;
     }
+
     input[type="text"], input[type="number"] {
       padding: 8px;
       width: 300px;
@@ -19,6 +21,7 @@
       border: 1px solid #ccc;
       border-radius: 4px;
     }
+
     button {
       padding: 8px 15px;
       background-color: #007BFF;
@@ -27,9 +30,11 @@
       border-radius: 4px;
       cursor: pointer;
     }
+
     button:hover {
       background-color: #0056b3;
     }
+
     .result {
       background: white;
       border: 1px solid #ccc;
@@ -37,6 +42,7 @@
       margin-top: 20px;
       border-radius: 5px;
     }
+
     .participant {
       margin-bottom: 20px;
       border-bottom: 1px dashed #ccc;
@@ -52,16 +58,18 @@
   <div id="resultado" class="result"></div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxiM22HcfY15TmaZJQOuhbZbFEBo7ZKuGxvkJnUt3dJ2oPGiI-1rsxBmzfokByUX7YilA/exec"; // ← tu URL aquí
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxN0i9CFPSGn2dbVfUtKlGYF-ZL_UoxDZ_2FaZlgOT1LH1XIzQidPtnCgslm4YrGjeJZg/exec";
 
     async function buscar() {
       const query = document.getElementById("busqueda").value.trim();
+
       if (!query) {
         alert("Por favor ingrese un criterio de búsqueda.");
         return;
       }
 
       document.getElementById("resultado").innerHTML = "Buscando...";
+
       try {
         const res = await fetch(`${SCRIPT_URL}?query=${encodeURIComponent(query)}`);
         const data = await res.json();
@@ -102,16 +110,17 @@
       try {
         const res = await fetch(SCRIPT_URL, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ documento, dorsal })
+          body: JSON.stringify({ documento, dorsal }),
+          headers: { "Content-Type": "application/json" }
         });
 
-        const result = await res.json();
-        alert(result.message);
+        const data = await res.json();
 
-        if (result.success) buscar(); // Recarga los datos
+        alert(data.message);
+
+        if (data.success) {
+          buscar(); // Refresca la lista si la actualización fue exitosa
+        }
       } catch (error) {
         console.error(error);
         alert("Error al asignar el dorsal.");
